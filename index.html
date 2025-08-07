@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spinning Wheel Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            overflow: auto;
+        }
+        #wheelContainer {
+            position: relative;
+            width: 300px;
+            height: 300px;
+        }
+        #wheel {
+            width: 100%;
+            height: 100%;
+            transition: transform 5s ease-out;
+        }
+        #arrow {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 20px solid black;
+            z-index: 10;
+        }
+        #spinButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        #spinButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+        #claimButton {
+            margin-top: 10px;
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            display: none;
+        }
+        #accessDenied {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #accessDenied .container {
+            text-align: center;
+            color: #ff0000;
+            z-index: 2;
+            position: relative;
+        }
+        .lock-icon {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            filter: invert(36%) sepia(100%) saturate(1000%) hue-rotate(90deg); /* Green lock icon */
+        }
+        #accessDenied h1 {
+            font-size: 48px;
+            margin: 0;
+            text-shadow: 0 0 10px #ff0000;
+            animation: glitch 1s linear infinite;
+        }
+        @keyframes glitch {
+            2%, 64% {
+                transform: translate(2px, 0) skew(0deg);
+            }
+            4%, 60% {
+                transform: translate(-2px, 0) skew(0deg);
+            }
+            62% {
+                transform: translate(0, 0) skew(5deg);
+            }
+        }
+        #matrix {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            opacity: 0.5;
+            animation: flicker 0.5s infinite alternate;
+        }
+        @keyframes flicker {
+            0% { opacity: 0.5; }
+            100% { opacity: 0.3; }
+        }
+        #loadingPopup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #loadingPopup p {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        #hackerMessage {
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            margin-top: 20px;
+            width: 80%;
+            text-align: center;
+        }
+        #redFlash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="wheelContainer">
+            <canvas id="wheel" width="300" height="300"></canvas>
+            <div id="arrow"></div>
+        </div>
+        <button id="spinButton">Spin the Wheel!</button>
+        <div id="result"></div>
+        <button id="claimButton">Yes</button>
+    </div>
+    <div id="loadingPopup">
+        <div class="loader"></div>
+        <p>Processing your claim...</p>
+    </div>
+    <div id="accessDenied">
+        <canvas id="matrix"></canvas>
+        <div id="redFlash"></div>
+        <div class="container">
+            <img src="https://img.icons8.com/ios-filled/100/000000/lock.png" alt="Lock Icon" class="lock-icon">
+            <h1>DATA BREACHED</h1>
+            <div id="hackerMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('wheel');
+        const ctx = canvas.getContext('2d');
+        const spinButton = document.getElementById('spinButton');
+        const resultDiv = document.getElementById('result');
+        const claimButton = document.getElementById('claimButton');
+        const gameContainer = document.getElementById('gameContainer');
+        const accessDenied = document.getElementById('accessDenied');
+        const matrixCanvas = document.getElementById('matrix');
+        const matrixCtx = matrixCanvas.getContext('2d');
+        const loadingPopup = document.getElementById('loadingPopup');
+        const hackerMessage = document.getElementById('hackerMessage');
+        const redFlash = document.getElementById('redFlash');
+        const prizes = ['Laptop', 'Smartphone', 'Headphones', 'Gift Card', 'Tablet', 'Smartwatch'];
+        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeead', '#d4a5a5'];
+        const segments = prizes.length;
+        const anglePerSegment = 2 * Math.PI / segments;
+        let currentAngle = 0;
+        let isSpinning = false;
+
+        // Wheel drawing
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2;
+
+            for (let i = 0; i < segments; i++) {
+                const startAngle = i * anglePerSegment;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, startAngle + anglePerSegment);
+                ctx.fillStyle = colors[i];
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + anglePerSegment / 2);
+                ctx.textAlign = 'center';
+                ctx.fillStyle = 'black';
+                ctx.font = '16px Arial';
+                ctx.fillText(prizes[i], radius * 0.6, 10);
+                ctx.restore();
+            }
+        }
+
+        // Matrix effect
+        function setupMatrix() {
+            matrixCanvas.height = window.innerHeight;
+            matrixCanvas.width = window.innerWidth;
+            const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const fontSize = 14;
+            const columns = matrixCanvas.width / fontSize;
+            const drops = [];
+
+            for (let x = 0; x < columns; x++) {
+                drops[x] = 1;
+            }
+
+            function drawMatrix() {
+                matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+                matrixCtx.fillStyle = '#0F0';
+                matrixCtx.font = fontSize + 'px monospace';
+
+                for (let i = 0; i < drops.length; i++) {
+                    const text = chars.charAt(Math.floor(Math.random() * chars.length));
+                    matrixCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                    if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            }
+
+            setInterval(drawMatrix, 33);
+
+            window.addEventListener('resize', () => {
+                matrixCanvas.height = window.innerHeight;
+                matrixCanvas.width = window.innerWidth;
+            });
+        }
+
+        // Hacker message typing effect
+        function displayHackerMessage() {
+            const messages = [
+                "System compromised...",
+                "Unauthorized access detected!",
+                "Your data is now ours.",
+                "Firewall breached."
+            ];
+            let currentMessage = 0;
+            let currentText = '';
+            let charIndex = 0;
+
+            function typeMessage() {
+                if (charIndex < messages[currentMessage].length) {
+                    currentText += messages[currentMessage][charIndex];
+                    hackerMessage.textContent = currentText + '_';
+                    charIndex++;
+                    setTimeout(typeMessage, 100);
+                } else {
+                    setTimeout(() => {
+                        currentText = '';
+                        charIndex = 0;
+                        currentMessage = (currentMessage + 1) % messages.length;
+                        hackerMessage.textContent = '';
+                        setTimeout(typeMessage, 500);
+                    }, 2000);
+                }
+            }
+
+            typeMessage();
+        }
+
+        // Red flash effect
+        function triggerRedFlash() {
+            redFlash.style.display = 'block';
+            setTimeout(() => {
+                redFlash.style.display = 'none';
+            }, 200);
+            setTimeout(triggerRedFlash, 3000 + Math.random() * 2000); // Random intervals
+        }
+
+        // Alert sound
+        function playAlertSound() {
+            const audio = new Audio('data:audio/wav;base64,UklGRl9vAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YS7/7wAA/////wAAAP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/');
+            audio.play().catch(() => {}); // Silent catch for browser restrictions
+        }
+
+        function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+            spinButton.disabled = true;
+            resultDiv.textContent = '';
+            claimButton.style.display = 'none';
+
+            const spins = 5 + Math.random() * 5;
+            const randomAngle = Math.random() * 360;
+            const totalRotation = spins * 360 + randomAngle;
+            currentAngle += totalRotation;
+
+            canvas.style.transform = `rotate(${currentAngle}deg)`;
+
+            setTimeout(() => {
+                const finalAngle = currentAngle % 360;
+                const winningSegment = Math.floor(((360 - finalAngle) % 360) / (360 / segments));
+                resultDiv.textContent = `Congratulations! You won a ${prizes[winningSegment]}! Click Yes to own the item.`;
+                claimButton.style.display = 'block';
+                isSpinning = false;
+                spinButton.disabled = false;
+            }, 5000);
+        }
+
+        claimButton.addEventListener('click', () => {
+            gameContainer.style.display = 'none';
+            loadingPopup.style.display = 'flex';
+            setTimeout(() => {
+                loadingPopup.style.display = 'none';
+                accessDenied.style.display = 'flex';
+                setupMatrix();
+                displayHackerMessage();
+                triggerRedFlash();
+                playAlertSound();
+            }, 2000); // Show loading for 2 seconds
+        });
+
+        drawWheel();
+        spinButton.addEventListener('click', spinWheel);
+    </script>
+</body>
+</html>
