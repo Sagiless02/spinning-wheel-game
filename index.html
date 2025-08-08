@@ -1,374 +1,328 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spinning Wheel Game</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            overflow: auto;
-        }
-        #wheelContainer {
-            position: relative;
-            width: 300px;
-            height: 300px;
-        }
-        #wheel {
-            width: 100%;
-            height: 100%;
-            transition: transform 5s ease-out;
-        }
-        #arrow {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-top: 20px solid black;
-            z-index: 10;
-        }
-        #spinButton {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        #spinButton:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        #result {
-            margin-top: 20px;
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-        }
-        #claimButton {
-            margin-top: 10px;
-            padding: 8px 16px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            display: none;
-        }
-        #accessDenied {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000000;
-            z-index: 1000;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        #accessDenied .container {
-            text-align: center;
-            color: #ff0000;
-            z-index: 2;
-            position: relative;
-        }
-        .lock-icon {
-            width: 100px;
-            height: 100px;
-            margin-bottom: 20px;
-            filter: invert(36%) sepia(100%) saturate(1000%) hue-rotate(90deg); /* Green lock icon */
-        }
-        #accessDenied h1 {
-            font-size: 48px;
-            margin: 0;
-            text-shadow: 0 0 10px #ff0000;
-            animation: glitch 1s linear infinite;
-        }
-        @keyframes glitch {
-            2%, 64% {
-                transform: translate(2px, 0) skew(0deg);
-            }
-            4%, 60% {
-                transform: translate(-2px, 0) skew(0deg);
-            }
-            62% {
-                transform: translate(0, 0) skew(5deg);
-            }
-        }
-        #matrix {
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-            opacity: 0.5;
-            animation: flicker 0.5s infinite alternate;
-        }
-        @keyframes flicker {
-            0% { opacity: 0.5; }
-            100% { opacity: 0.3; }
-        }
-        #loadingPopup {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        .loader {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #3498db;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        #loadingPopup p {
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
-        }
-        #hackerMessage {
-            color: #0f0;
-            font-family: 'Courier New', monospace;
-            font-size: 18px;
-            margin-top: 20px;
-            width: 80%;
-            text-align: center;
-        }
-        #redFlash {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 0, 0, 0.5);
-            z-index: 999;
-            display: none;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spinning Wheel Game</title>
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        overflow: auto;
+    }
+    #wheelContainer {
+        position: relative;
+        width: 300px;
+        height: 300px;
+    }
+    #wheel {
+        width: 100%;
+        height: 100%;
+        transition: transform 3s ease-out;
+    }
+    #arrow {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-top: 20px solid black;
+        z-index: 10;
+    }
+    #spinButton {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+    }
+    #spinButton:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+    #result {
+        margin-top: 20px;
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+    }
+    #claimButton {
+        margin-top: 10px;
+        padding: 8px 16px;
+        font-size: 16px;
+        cursor: pointer;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        display: none;
+    }
+    /* Access Denied screen */
+    #accessDenied {
+        display: none;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        background-color: #000;
+        z-index: 9999;
+        overflow: hidden;
+        flex-direction: column;
+    }
+    #accessDenied .container {
+        text-align: center;
+        color: #ff3333;
+        z-index: 2;
+        position: relative;
+        font-family: 'Courier New', monospace;
+        animation: glitch 1s linear infinite;
+    }
+    .lock-icon {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 20px;
+        filter: invert(20%) sepia(100%) saturate(2000%) hue-rotate(0deg);
+        animation: glitch-img 0.5s linear infinite;
+    }
+    #accessDenied h1 {
+        font-size: 60px;
+        margin: 0;
+        text-shadow: 0 0 15px #ff0000, 0 0 30px #ff0000;
+        letter-spacing: 2px;
+    }
+    #accessDenied p {
+        font-size: 20px;
+        color: #ff6666;
+        text-shadow: 0 0 10px #ff3333;
+        margin-top: 10px;
+    }
+    #matrix {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+        opacity: 0.7;
+    }
+    /* Glitch Animation */
+    @keyframes glitch {
+        0% { transform: translate(0); }
+        20% { transform: translate(-5px, 5px); }
+        40% { transform: translate(5px, -5px); }
+        60% { transform: translate(-3px, 3px); }
+        80% { transform: translate(3px, -3px); }
+        100% { transform: translate(0); }
+    }
+    @keyframes glitch-img {
+        0% { transform: scale(1); }
+        20% { transform: scale(1.05) skew(5deg); }
+        40% { transform: scale(0.95) skew(-5deg); }
+        60% { transform: scale(1.1); }
+        80% { transform: scale(0.9) skew(3deg); }
+        100% { transform: scale(1); }
+    }
+    /* Loading Popup */
+    #loadingPopup {
+        display: none;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 9998;
+        flex-direction: column;
+    }
+    .loader {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3498db;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    #loadingText {
+        color: white;
+        font-size: 24px;
+        margin-top: 20px;
+        font-family: Arial, sans-serif;
+    }
+</style>
 </head>
 <body>
-    <div id="gameContainer">
-        <div id="wheelContainer">
-            <canvas id="wheel" width="300" height="300"></canvas>
-            <div id="arrow"></div>
-        </div>
-        <button id="spinButton">Spin the Wheel!</button>
-        <div id="result"></div>
-        <button id="claimButton">Yes</button>
+
+<div id="gameContainer">
+    <div id="wheelContainer">
+        <canvas id="wheel" width="300" height="300"></canvas>
+        <div id="arrow"></div>
     </div>
-    <div id="loadingPopup">
-        <div class="loader"></div>
-        <p>Processing your claim...</p>
+    <button id="spinButton">Spin the Wheel!</button>
+    <div id="result"></div>
+    <button id="claimButton">Yes</button>
+</div>
+
+<!-- Loading Popup -->
+<div id="loadingPopup">
+    <div class="loader"></div>
+    <div id="loadingText">Processing your item...</div>
+</div>
+
+<!-- Access Denied Screen -->
+<div id="accessDenied">
+    <canvas id="matrix"></canvas>
+    <div class="container">
+        <img src="https://img.icons8.com/ios-filled/100/000000/lock.png" alt="Lock Icon" class="lock-icon">
+        <h1>DATA BREACHED</h1>
+        <p>WARNING: SYSTEM COMPROMISED. YOUR DATA IS BEING EXTRACTED.</p>
     </div>
-    <div id="accessDenied">
-        <canvas id="matrix"></canvas>
-        <div id="redFlash"></div>
-        <div class="container">
-            <img src="https://img.icons8.com/ios-filled/100/000000/lock.png" alt="Lock Icon" class="lock-icon">
-            <h1>DATA BREACHED</h1>
-            <div id="hackerMessage"></div>
-        </div>
-    </div>
+</div>
 
-    <script>
-        const canvas = document.getElementById('wheel');
-        const ctx = canvas.getContext('2d');
-        const spinButton = document.getElementById('spinButton');
-        const resultDiv = document.getElementById('result');
-        const claimButton = document.getElementById('claimButton');
-        const gameContainer = document.getElementById('gameContainer');
-        const accessDenied = document.getElementById('accessDenied');
-        const matrixCanvas = document.getElementById('matrix');
-        const matrixCtx = matrixCanvas.getContext('2d');
-        const loadingPopup = document.getElementById('loadingPopup');
-        const hackerMessage = document.getElementById('hackerMessage');
-        const redFlash = document.getElementById('redFlash');
-        const prizes = ['Laptop', 'Smartphone', 'Headphones', 'Gift Card', 'Tablet', 'Smartwatch'];
-        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeead', '#d4a5a5'];
-        const segments = prizes.length;
-        const anglePerSegment = 2 * Math.PI / segments;
-        let currentAngle = 0;
-        let isSpinning = false;
+<script>
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const spinButton = document.getElementById('spinButton');
+    const resultDiv = document.getElementById('result');
+    const claimButton = document.getElementById('claimButton');
+    const accessDenied = document.getElementById('accessDenied');
+    const loadingPopup = document.getElementById('loadingPopup');
 
-        // Wheel drawing
-        function drawWheel() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const radius = canvas.width / 2;
+    const prizes = ['Laptop', 'Smartphone', 'Headphones', 'Gift Card', 'Tablet', 'Smartwatch'];
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeead', '#d4a5a5'];
+    const segments = prizes.length;
+    const anglePerSegment = 360 / segments;
 
-            for (let i = 0; i < segments; i++) {
-                const startAngle = i * anglePerSegment;
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, startAngle, startAngle + anglePerSegment);
-                ctx.fillStyle = colors[i];
-                ctx.fill();
-                ctx.stroke();
+    let currentAngle = 0;
+    let isSpinning = false;
 
-                ctx.save();
-                ctx.translate(centerX, centerY);
-                ctx.rotate(startAngle + anglePerSegment / 2);
-                ctx.textAlign = 'center';
-                ctx.fillStyle = 'black';
-                ctx.font = '16px Arial';
-                ctx.fillText(prizes[i], radius * 0.6, 10);
-                ctx.restore();
-            }
+    function drawWheel() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = canvas.width / 2;
+
+        for (let i = 0; i < segments; i++) {
+            const startAngle = (i * anglePerSegment) * Math.PI / 180;
+            const endAngle = ((i + 1) * anglePerSegment) * Math.PI / 180;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+            ctx.fillStyle = colors[i];
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(startAngle + (endAngle - startAngle) / 2);
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'black';
+            ctx.font = '16px Arial';
+            ctx.fillText(prizes[i], radius * 0.6, 10);
+            ctx.restore();
+        }
+    }
+
+    function spinWheel() {
+        if (isSpinning) return;
+        isSpinning = true;
+        spinButton.disabled = true;
+        resultDiv.textContent = '';
+        claimButton.style.display = 'none';
+
+        const spins = 5 + Math.random() * 5;
+        const randomAngle = Math.random() * 360;
+        const totalRotation = spins * 360 + randomAngle;
+        currentAngle += totalRotation;
+
+        canvas.style.transform = `rotate(${currentAngle}deg)`;
+
+        setTimeout(() => {
+            const finalAngle = (currentAngle % 360 + 360) % 360;
+            const offsetAngle = (finalAngle + 90) % 360; // Align with arrow
+            const winningSegment = Math.floor(((360 - offsetAngle) % 360) / anglePerSegment);
+            const wonPrize = prizes[winningSegment];
+
+            resultDiv.textContent = `Congratulations! 🎉 You won a ${wonPrize}! 🎁 Click Yes to claim.`;
+            claimButton.style.display = 'block';
+            isSpinning = false;
+            spinButton.disabled = false;
+        }, 5000);
+    }
+
+    function startMatrixEffect() {
+        const matrix = document.getElementById('matrix');
+        const ctxM = matrix.getContext('2d');
+
+        matrix.height = window.innerHeight;
+        matrix.width = window.innerWidth;
+
+        const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const fontSize = 14;
+        const columns = matrix.width / fontSize;
+        const drops = [];
+
+        for (let x = 0; x < columns; x++) {
+            drops[x] = 1;
         }
 
-        // Matrix effect
-        function setupMatrix() {
-            matrixCanvas.height = window.innerHeight;
-            matrixCanvas.width = window.innerWidth;
-            const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            const fontSize = 14;
-            const columns = matrixCanvas.width / fontSize;
-            const drops = [];
+        function drawMatrix() {
+            ctxM.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctxM.fillRect(0, 0, matrix.width, matrix.height);
 
-            for (let x = 0; x < columns; x++) {
-                drops[x] = 1;
-            }
+            ctxM.fillStyle = '#0F0';
+            ctxM.font = fontSize + 'px monospace';
 
-            function drawMatrix() {
-                matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-                matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-                matrixCtx.fillStyle = '#0F0';
-                matrixCtx.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars.charAt(Math.floor(Math.random() * chars.length));
+                ctxM.fillText(text, i * fontSize, drops[i] * fontSize);
 
-                for (let i = 0; i < drops.length; i++) {
-                    const text = chars.charAt(Math.floor(Math.random() * chars.length));
-                    matrixCtx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-                    if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
-                        drops[i] = 0;
-                    }
-                    drops[i]++;
+                if (drops[i] * fontSize > matrix.height && Math.random() > 0.975) {
+                    drops[i] = 0;
                 }
+                drops[i]++;
             }
-
-            setInterval(drawMatrix, 33);
-
-            window.addEventListener('resize', () => {
-                matrixCanvas.height = window.innerHeight;
-                matrixCanvas.width = window.innerWidth;
-            });
         }
 
-        // Hacker message typing effect
-        function displayHackerMessage() {
-            const messages = [
-                "System compromised...",
-                "Unauthorized access detected!",
-                "Your data is now ours.",
-                "Firewall breached."
-            ];
-            let currentMessage = 0;
-            let currentText = '';
-            let charIndex = 0;
+        setInterval(drawMatrix, 33);
 
-            function typeMessage() {
-                if (charIndex < messages[currentMessage].length) {
-                    currentText += messages[currentMessage][charIndex];
-                    hackerMessage.textContent = currentText + '_';
-                    charIndex++;
-                    setTimeout(typeMessage, 100);
-                } else {
-                    setTimeout(() => {
-                        currentText = '';
-                        charIndex = 0;
-                        currentMessage = (currentMessage + 1) % messages.length;
-                        hackerMessage.textContent = '';
-                        setTimeout(typeMessage, 500);
-                    }, 2000);
-                }
-            }
-
-            typeMessage();
-        }
-
-        // Red flash effect
-        function triggerRedFlash() {
-            redFlash.style.display = 'block';
-            setTimeout(() => {
-                redFlash.style.display = 'none';
-            }, 200);
-            setTimeout(triggerRedFlash, 3000 + Math.random() * 2000); // Random intervals
-        }
-
-        // Alert sound
-        function playAlertSound() {
-            const audio = new Audio('data:audio/wav;base64,UklGRl9vAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YS7/7wAA/////wAAAP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/');
-            audio.play().catch(() => {}); // Silent catch for browser restrictions
-        }
-
-        function spinWheel() {
-            if (isSpinning) return;
-            isSpinning = true;
-            spinButton.disabled = true;
-            resultDiv.textContent = '';
-            claimButton.style.display = 'none';
-
-            const spins = 5 + Math.random() * 5;
-            const randomAngle = Math.random() * 360;
-            const totalRotation = spins * 360 + randomAngle;
-            currentAngle += totalRotation;
-
-            canvas.style.transform = `rotate(${currentAngle}deg)`;
-
-            setTimeout(() => {
-                const finalAngle = currentAngle % 360;
-                const winningSegment = Math.floor(((360 - finalAngle) % 360) / (360 / segments));
-                resultDiv.textContent = `Congratulations! You won a ${prizes[winningSegment]}! Click Yes to own the item.`;
-                claimButton.style.display = 'block';
-                isSpinning = false;
-                spinButton.disabled = false;
-            }, 5000);
-        }
-
-        claimButton.addEventListener('click', () => {
-            gameContainer.style.display = 'none';
-            loadingPopup.style.display = 'flex';
-            setTimeout(() => {
-                loadingPopup.style.display = 'none';
-                accessDenied.style.display = 'flex';
-                setupMatrix();
-                displayHackerMessage();
-                triggerRedFlash();
-                playAlertSound();
-            }, 2000); // Show loading for 2 seconds
+        window.addEventListener('resize', () => {
+            matrix.height = window.innerHeight;
+            matrix.width = window.innerWidth;
         });
+    }
 
-        drawWheel();
-        spinButton.addEventListener('click', spinWheel);
-    </script>
+    claimButton.addEventListener('click', () => {
+        document.getElementById('gameContainer').style.display = 'none';
+        loadingPopup.style.display = 'flex';
+        setTimeout(() => {
+            loadingPopup.style.display = 'none';
+            accessDenied.style.display = 'flex';
+            startMatrixEffect();
+        }, 2000); // Show loading for 2 seconds before access denied
+    });
+
+    drawWheel();
+    spinButton.addEventListener('click', spinWheel);
+</script>
+
 </body>
 </html>
